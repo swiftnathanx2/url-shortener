@@ -1,6 +1,6 @@
-import { query } from '#src/db/index.js';
 import makeCode from '#src/utils/generator.js';
 import { AppError } from '#src/middlewares/error-handler.js';
+import { query, pool } from '#src/db/index.js';
 
 export const linkService = {
   //   getLink: async (code) => {
@@ -23,16 +23,15 @@ export const linkService = {
 
         return result.rows[0];
       } catch (err) {
-        if (err.code === '23505') throw err;
+        if (err.code !== '23505') throw err;
         if (userChoseCode) throw new AppError('That code is already taken', 409);
-        throw err;
       }
     }
     throw new AppError('Could not generate a unique code, please try again', 500);
   },
 
-  visit: async (code) => {
-    const result = await query(`SELECT target_url, expires_at FROM links WHERE code = $1`, [code]);
+  visit: async (code, referrer, userAgent) => {
+    const result = await query(`SELECT id, target_url, expires_at FROM links WHERE code = $1`, [code]);
 
     const link = result.rows[0];
 
@@ -42,6 +41,25 @@ export const linkService = {
 
     if (link.expires_at && link.expires_at <= new Date()) {
       throw new AppError('Link has expired', 410);
+    }
+
+    const client = await pool.connect();
+
+    try {
+      // start transaction
+      await client.query('BEGIN');
+
+      await client.query(`INSERT INTO clicks (link_id, referrer, user_agent) VALUES ($1, $2, $3)`, [link.id, referrer, userAgent]);
+
+      await client.query(`UPDATE links SET click_count = click_count + 1 WHERE id= $1`, [link.id]);
+
+      // commit if successful
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
     }
 
     return link.target_url;

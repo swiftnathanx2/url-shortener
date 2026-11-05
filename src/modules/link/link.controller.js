@@ -7,7 +7,11 @@ export const linkController = {
   },
 
   visit: async (req, res) => {
-    const target = await linkService.visit(req.params.code);
+    const referrer = req.get('referer') ?? null;
+
+    const userAgent = req.get('user-agent') ?? null;
+
+    const target = await linkService.visit(req.params.code, referrer, userAgent);
     res.redirect(302, target);
   },
 };
