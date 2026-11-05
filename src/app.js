@@ -9,6 +9,7 @@ import { morganMiddleware } from '#src/middlewares/logger.js';
 import { AppError, errorHandler } from '#src/middlewares/error-handler.js';
 import healthcheckRoutes from '#src/modules/healthcheck/healthcheck.route.js';
 import linkRoutes from '#src/modules/link/link.route.js';
+import redirectRoutes from '#src/modules/link/redirectRoutes.js';
 
 export const createApp = () => {
   const app = express();
@@ -32,6 +33,10 @@ export const createApp = () => {
   app.use('/api', healthcheckRoutes);
 
   app.use(linkRoutes);
+
+  app.use(redirectRoutes);
+
+  // app.use();
 
   app.use((_req, _res, next) => {
     next(new AppError('Route not found', 404));

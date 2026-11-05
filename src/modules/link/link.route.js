@@ -7,7 +7,7 @@ import { linkController } from './link.controller.js';
 const router = Router();
 
 router.post('/links', validate(createLinkSchema), linkController.createLink);
-router.get('/links/:code', linkController.getLink);
+// router.get('/:code', validate(linkParamsSchema), linkController.getLink);
 // router.post('/links', validate(createLinkSchema), linkController.createLink);
 
 export default router;

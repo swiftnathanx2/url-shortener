@@ -6,8 +6,8 @@ export const linkController = {
     res.status(201).json({ status: 'success', data: link });
   },
 
-  getLink: async (req, res) => {
-    const link = await linkService.getLink(req.params.code);
-    res.status(200).json({ status: 'success', data: link });
+  visit: async (req, res) => {
+    const target = await linkService.visit(req.params.code);
+    res.redirect(302, target);
   },
 };

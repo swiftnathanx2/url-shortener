@@ -30,4 +30,20 @@ export const linkService = {
     }
     throw new AppError('Could not generate a unique code, please try again', 500);
   },
+
+  visit: async (code) => {
+    const result = await query(`SELECT target_url, expires_at FROM links WHERE code = $1`, [code]);
+
+    const link = result.rows[0];
+
+    if (!link) {
+      throw new AppError('Link not found', 404);
+    }
+
+    if (link.expires_at && link.expires_at <= new Date()) {
+      throw new AppError('Link has expired', 410);
+    }
+
+    return link.target_url;
+  },
 };
