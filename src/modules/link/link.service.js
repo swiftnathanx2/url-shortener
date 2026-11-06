@@ -83,4 +83,35 @@ export const linkService = {
       throw new AppError('Link not found', 404);
     }
   },
+
+  getClicks: async (code, after, limit) => {
+    const linkResult = await query(`SELECT id FROM links WHERE code =$1`, [code]);
+
+    const link = linkResult.rows[0];
+
+    if (!link) {
+      throw new AppError(`link not found`, 404);
+    }
+
+    const result = await query(
+      `
+      SELECT id, clicked_at, referrer, user_agent
+      FROM clicks WHERE link_id = $1 AND id > $2
+      ORDER BY id ASC
+      LIMIT $3`,
+      [link.id, after, limit + 1],
+    );
+
+    const rows = result.rows;
+
+    const hasMore = rows.length > limit;
+
+    if (hasMore) {
+      rows.pop();
+    }
+
+    const cursor = hasMore ? rows[rows.length - 1].id : null;
+
+    return { rows, cursor };
+  },
 };

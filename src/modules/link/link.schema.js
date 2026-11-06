@@ -48,3 +48,14 @@ export const linkParamsSchema = z.object({
     code: z.string().regex(/^[A-Za-z0-9_-]{3,16}$/, { message: 'Vanity code must range between 3 to 16 characters long' }),
   }),
 });
+
+export const clickSchema = z.object({
+  params: z.object({
+    code: z.string().regex(/^[A-Za-z0-9_-]{3,16}$/, { message: 'Invalid code' }),
+  }),
+
+  query: z.object({
+    after: z.coerce.number().int().min(0).default(0),
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+  }),
+});

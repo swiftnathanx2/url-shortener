@@ -1,3 +1,4 @@
+// import { AppError } from '#src/middlewares/error-handler.js';
 import { linkService } from './link.service.js';
 
 export const linkController = {
@@ -23,5 +24,14 @@ export const linkController = {
   deleteLink: async (req, res) => {
     await linkService.deleteLink(req.validated.params.code);
     res.status(204).send();
+  },
+
+  getClicks: async (req, res) => {
+    const { code } = req.validated.params;
+    const { after, limit } = req.validated.query;
+
+    const { rows, cursor } = await linkService.getClicks(code, after, limit);
+
+    res.json({ status: 'success', data: rows, cursor });
   },
 };
