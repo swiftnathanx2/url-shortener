@@ -11,7 +11,17 @@ export const linkController = {
 
     const userAgent = req.get('user-agent') ?? null;
 
-    const target = await linkService.visit(req.params.code, referrer, userAgent);
+    const target = await linkService.visit(req.validated.params.code, referrer, userAgent);
     res.redirect(302, target);
+  },
+
+  getLink: async (req, res) => {
+    const link = await linkService.getLink(req.validated.params.code);
+    res.json({ status: 'success', data: link });
+  },
+
+  deleteLink: async (req, res) => {
+    await linkService.deleteLink(req.validated.params.code);
+    res.status(204).send();
   },
 };

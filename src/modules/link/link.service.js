@@ -64,4 +64,23 @@ export const linkService = {
 
     return link.target_url;
   },
+
+  getLink: async (code) => {
+    const result = await query(`SELECT code, target_url,created_at, expires_at,click_count FROM links WHERE code = $1`, [code]);
+
+    const link = result.rows[0];
+
+    if (!link) {
+      throw new AppError('Link not found', 404);
+    }
+    return link;
+  },
+
+  deleteLink: async (code) => {
+    const result = await query(`DELETE FROM links WHERE code = $1`, [code]);
+
+    if (result.rowCount === 0) {
+      throw new AppError('Link not found', 404);
+    }
+  },
 };

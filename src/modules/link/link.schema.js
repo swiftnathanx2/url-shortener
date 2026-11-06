@@ -1,5 +1,14 @@
 import { z } from 'zod';
 
+const addProtocol = (value) => {
+  if (typeof value !== 'string') return value;
+
+  const trimmed = value.trim();
+
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)) return trimmed;
+
+  return `https://${trimmed}`;
+};
 export const createLinkSchema = z.object({
   body: z.object({
     code: z
@@ -9,17 +18,23 @@ export const createLinkSchema = z.object({
       })
       .optional(),
 
-    target_url: z
-      .string()
-      .url()
-      .refine(
-        (url) => {
-          return url.startsWith('http://') || url.startsWith('https://');
-        },
-        {
-          message: 'Link must start with http:// or https://',
-        },
-      ),
+    target_url: z.preprocess(
+      addProtocol,
+      z
+        .string()
+        .url()
+        .refine(
+          (url) => {
+            return url.startsWith('http://') || url.startsWith('https://');
+          },
+          {
+            message: 'Link must start with http:// or https://',
+          },
+        )
+        .refine((url) => new URL(url).hostname.includes('.'), {
+          message: 'Link must have a valid domain like example.com',
+        }),
+    ),
 
     expires_at: z.coerce
       .date()
