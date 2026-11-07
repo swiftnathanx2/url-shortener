@@ -10,6 +10,7 @@ router.post('/links', validate(createLinkSchema), linkController.createLink);
 router.get('/links/:code', validate(linkParamsSchema), linkController.getLink);
 router.delete('/links/:code', validate(linkParamsSchema), linkController.deleteLink);
 router.get('/links/:code/clicks', validate(clickSchema), linkController.getClicks);
+router.get('/links/:code/clicks.csv', validate(linkParamsSchema), linkController.exportClicksCsv);
 // router.get('/:code', validate(linkParamsSchema), linkController.getLink);
 // router.post('/links', validate(createLinkSchema), linkController.createLink);
 

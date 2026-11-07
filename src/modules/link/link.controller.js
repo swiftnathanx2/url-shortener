@@ -1,6 +1,6 @@
 // import { AppError } from '#src/middlewares/error-handler.js';
 import { linkService } from './link.service.js';
-
+import { toCsvCell } from '#src/utils/csv.js';
 export const linkController = {
   createLink: async (req, res) => {
     const link = await linkService.createLink(req.validated.body);
@@ -33,5 +33,30 @@ export const linkController = {
     const { rows, cursor } = await linkService.getClicks(code, after, limit);
 
     res.json({ status: 'success', data: rows, cursor });
+  },
+
+  exportClicksCsv: async (req, res) => {
+    const { code } = req.validated.params;
+    await linkService.getLink(code);
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${code}-clicks.csv"`);
+
+    res.write('id,clicked_at,referrer,user_agent\n');
+
+    let after = 0;
+
+    while (after !== null) {
+      const { rows, cursor } = await linkService.getClicks(code, after, 500);
+
+      for (const row of rows) {
+        const line = [row.id, row.clicked_at, row.referrer, row.user_agent].map(toCsvCell).join(',');
+        res.write(`${line}\n`);
+      }
+
+      after = cursor;
+    }
+
+    res.end();
   },
 };
