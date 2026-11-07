@@ -154,4 +154,79 @@ describe('LINKLY API ', () => {
       assert.equal(res.status, 404);
     });
   });
+
+  //pagination test
+
+  describe('GET /links/:code/clicks', () => {
+    it('pages through every click once and ends with a null cursor', async () => {
+      await makeLink('abc123');
+      for (let i = 0; i < 25; i++) {
+        await get('/abc123');
+      }
+
+      const ids = [];
+      const pageSizes = [];
+      let bookmark = 0;
+
+      for (let page = 0; page < 10 && bookmark !== null; page++) {
+        const res = await get(`/links/abc123/clicks?after=${bookmark}&limit=10`);
+        const body = await res.json();
+
+        assert.equal(res.status, 200);
+        pageSizes.push(body.data.length);
+        ids.push(...body.data.map((click) => click.id));
+        bookmark = body.cursor;
+      }
+
+      assert.deepEqual(pageSizes, [10, 10, 5]);
+      assert.equal(new Set(ids).size, 25);
+      assert.equal(bookmark, null);
+    });
+
+    it('returns 400 when limit is above the maximum', async () => {
+      await makeLink('abc123');
+
+      const res = await get('/links/abc123/clicks?limit=500');
+
+      assert.equal(res.status, 400);
+    });
+
+    it('returns 404 for an unknown code', async () => {
+      const res = await get('/links/nope123/clicks');
+
+      assert.equal(res.status, 404);
+    });
+  });
+
+  //   delete tests
+  describe('DELETE /links/:code', () => {
+    it('deletes the link and its clicks and returns 204', async () => {
+      await makeLink('abc123');
+      await get('/abc123');
+      await get('/abc123');
+
+      const res = await del('/links/abc123');
+
+      assert.equal(res.status, 204);
+      const links = await pool.query('SELECT count(*)::int AS n FROM links');
+      const clicks = await pool.query('SELECT count(*)::int AS n FROM clicks');
+      assert.equal(links.rows[0].n, 0);
+      assert.equal(clicks.rows[0].n, 0);
+    });
+
+    it('returns 404 when deleting the same link twice', async () => {
+      await makeLink('abc123');
+      await del('/links/abc123');
+
+      const res = await del('/links/abc123');
+
+      assert.equal(res.status, 404);
+    });
+
+    it('returns 400 for a badly formed code', async () => {
+      const res = await del('/links/a!');
+
+      assert.equal(res.status, 400);
+    });
+  });
 });
