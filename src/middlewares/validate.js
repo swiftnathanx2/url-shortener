@@ -3,7 +3,7 @@ import { AppError } from './error-handler.js';
 
 export const validate = (schema) => async (req, _res, next) => {
   try {
-    await schema.parseAsync({
+    req.validated = await schema.parseAsync({
       body: req.body,
       query: req.query,
       params: req.params,

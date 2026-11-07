@@ -16,9 +16,9 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.js\"",
     "format:check": "prettier --check \"src/**/*.js\"",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "test:cov": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
+    "test": "node --env-file=.env.test --test",
+    "test:watch": "node --env-file=.env.test --test --watch",
+    "test:cov": "node --env-file=.env.test --test --experimental-test-coverage"
   },
   "dependencies": {
     "compression": "^1.8.1",
@@ -28,6 +28,7 @@
     "helmet": "^8.1.0",
     "hpp": "^0.2.3",
     "morgan": "^1.10.1",
+    "pg": "^8.23.1",
     "winston": "^3.18.3",
     "zod": "^4.1.12"
   },
