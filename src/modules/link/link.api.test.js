@@ -88,4 +88,70 @@ describe('LINKLY API ', () => {
       assert.equal(body.data.target_url, 'https://www.linkedin.com/in/someone');
     });
   });
+
+  //   redirect test
+
+  describe('GET /:code', () => {
+    it('redirects with 302 to the target', async () => {
+      await makeLink('abc123');
+
+      const res = await get('/abc123');
+
+      assert.equal(res.status, 302);
+      assert.equal(res.headers.get('location'), 'https://example.com');
+    });
+
+    it('returns 404 for an unknown code', async () => {
+      const res = await get('/nope123');
+
+      assert.equal(res.status, 404);
+    });
+
+    it('returns 410 once the link has expired', async () => {
+      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      await makeLink('old123', { expires_at: tomorrow });
+      await pool.query(`UPDATE links SET expires_at = now() - interval '1 minute' WHERE code = $1`, ['old123']);
+
+      const res = await get('/old123');
+
+      assert.equal(res.status, 410);
+    });
+
+    it('records the click', async () => {
+      await makeLink('abc123');
+      await get('/abc123');
+
+      const res = await get('/links/abc123');
+      const body = await res.json();
+
+      assert.equal(body.data.click_count, 1);
+    });
+  });
+
+  // link details
+
+  describe('GET /links/:code', () => {
+    it('returns the details without the internal id', async () => {
+      await makeLink('abc123');
+
+      const res = await get('/links/abc123');
+      const body = await res.json();
+
+      assert.equal(res.status, 200);
+      assert.equal(body.data.code, 'abc123');
+      assert.equal(body.data.id, undefined);
+    });
+
+    it('returns 400 for a badly formed code', async () => {
+      const res = await get('/links/a!');
+
+      assert.equal(res.status, 400);
+    });
+
+    it('returns 404 for an unknown code', async () => {
+      const res = await get('/links/nope123');
+
+      assert.equal(res.status, 404);
+    });
+  });
 });
