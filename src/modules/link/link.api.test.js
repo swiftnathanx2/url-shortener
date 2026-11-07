@@ -229,4 +229,56 @@ describe('LINKLY API ', () => {
       assert.equal(res.status, 400);
     });
   });
+
+  //   csv export tests
+  describe('GET /links/:code/clicks.csv', () => {
+    it('exports a header line plus one row per click', async () => {
+      await makeLink('abc123');
+      for (let i = 0; i < 3; i++) {
+        await get('/abc123');
+      }
+
+      const res = await get('/links/abc123/clicks.csv');
+      const text = await res.text();
+      const lines = text.trim().split('\n');
+
+      assert.equal(res.status, 200);
+      assert.match(res.headers.get('content-type'), /text\/csv/);
+      assert.equal(lines[0], 'id,clicked_at,referrer,user_agent');
+      assert.equal(lines.length, 4);
+    });
+
+    it('returns 404 for an unknown code', async () => {
+      const res = await get('/links/nope123/clicks.csv');
+
+      assert.equal(res.status, 404);
+    });
+  });
+
+  //   promises test
+
+  describe('promises from the brief', () => {
+    it('counts every click under 20 simultaneous visits', async () => {
+      await makeLink('race01');
+
+      await Promise.all(Array.from({ length: 20 }, () => get('/race01')));
+
+      const res = await get('/links/race01');
+      const body = await res.json();
+      assert.equal(body.data.click_count, 20);
+    });
+
+    it('treats an injection attempt as harmless', async () => {
+      await makeLink('safe123');
+      const attack = "x'; DROP TABLE links;--";
+
+      const urlRes = await get(`/links/${encodeURIComponent(attack)}`);
+      const bodyRes = await post('/links', { target_url: 'https://example.com', code: attack });
+
+      assert.equal(urlRes.status, 400);
+      assert.equal(bodyRes.status, 400);
+      const check = await pool.query('SELECT count(*)::int AS n FROM links');
+      assert.equal(check.rows[0].n, 1);
+    });
+  });
 });
