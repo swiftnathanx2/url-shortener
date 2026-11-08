@@ -61,7 +61,7 @@ jobs:
 
       # NEW: build the tables in the fresh test database
       - name: Create tables
-        run: psql "$DATABASE_URL" -f db/schema.sql
+        run: psql "$DATABASE_URL" -f src/db/schema.sql
 
       - name: Run tests
         run: npm test

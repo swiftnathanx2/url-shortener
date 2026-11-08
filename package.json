@@ -17,8 +17,8 @@
     "format": "prettier --write \"src/**/*.js\"",
     "format:check": "prettier --check \"src/**/*.js\"",
     "test": "NODE_ENV=test node --test --test-concurrency=1",
-    "test:watch": "node --env-file=.env.test --test --watch",
-    "test:cov": "node --env-file=.env.test --test --experimental-test-coverage"
+    "test:watch": "NODE_ENV=test node --test --test-concurrency=1 --watch",
+    "test:cov": "NODE_ENV+test node --test --test-concurrency=1 --experimental-test-coverage"
   },
   "dependencies": {
     "compression": "^1.8.1",
