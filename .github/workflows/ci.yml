@@ -16,6 +16,30 @@ jobs:
     name: format, lint, typecheck, test
     runs-on: ubuntu-latest
 
+    # NEW: a real Postgres that GitHub starts next to your job
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: linkly_user
+          POSTGRES_PASSWORD: linkly
+          POSTGRES_DB: linkly_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U linkly_user"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # NEW: the settings that .env.test gives you on your laptop
+    env:
+      NODE_ENV: test
+      PORT: 8001
+      CORS_ORIGIN: http://localhost:3000
+      LOG_LEVEL: warn
+      DATABASE_URL: postgres://linkly_user:linkly@localhost:5432/linkly_test
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -34,6 +58,10 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
+
+      # NEW: build the tables in the fresh test database
+      - name: Create tables
+        run: psql "$DATABASE_URL" -f db/schema.sql
 
       - name: Run tests
         run: npm test
