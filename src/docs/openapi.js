@@ -14,6 +14,12 @@ export const openapiDocument = {
     version: '1.0.0',
     description: 'Create short links, redirect visitors, and track clicks.',
   },
+
+  tags: [
+    { name: 'Links', description: 'Create, read and delete short links' },
+    { name: 'Redirect', description: 'Visit a short link' },
+    { name: 'Clicks', description: 'The click log of a link' },
+  ],
   paths: {
     '/links': {
       post: {
@@ -117,6 +123,25 @@ export const openapiDocument = {
             },
           },
           400: errorResponse('Invalid after or limit'),
+          404: errorResponse('Unknown code'),
+        },
+      },
+    },
+
+    '/links/{code}/clicks.csv': {
+      get: {
+        summary: 'Download the whole click log as CSV',
+        parameters: [{ $ref: '#/components/parameters/Code' }],
+        responses: {
+          200: {
+            description: 'A CSV file, streamed',
+            content: {
+              'text/csv': {
+                schema: { type: 'string' },
+                example: 'id,clicked_at,referrer,user_agent\n55,2026-11-06T21:41:47.528Z,,curl/8.18.0',
+              },
+            },
+          },
           404: errorResponse('Unknown code'),
         },
       },
