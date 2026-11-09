@@ -34,7 +34,7 @@ export const createApp = () => {
 
   app.use(morganMiddleware);
 
-  app.use('/api', healthcheckRoutes);
+  app.use(healthcheckRoutes);
 
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiDocument));
 

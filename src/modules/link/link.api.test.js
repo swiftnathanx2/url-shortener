@@ -281,4 +281,16 @@ describe('LINKLY API ', () => {
       assert.equal(check.rows[0].n, 1);
     });
   });
+
+  // health test
+  describe('GET /health', () => {
+    it('reports that the service is up', async () => {
+      const res = await get('/health');
+      const body = await res.json();
+
+      assert.equal(res.status, 200);
+      assert.equal(body.status, 'success');
+      assert.equal(typeof body.uptime, 'number');
+    });
+  });
 });
