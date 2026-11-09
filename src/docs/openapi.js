@@ -146,6 +146,30 @@ export const openapiDocument = {
         },
       },
     },
+
+    '/health': {
+      get: {
+        summary: 'Check that the service is running',
+        responses: {
+          200: {
+            description: 'The service is up',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', example: 'success' },
+                    message: { type: 'string', example: 'Server is healthy' },
+                    timestamp: { type: 'string', format: 'date-time' },
+                    uptime: { type: 'number', description: 'Seconds the server process has been running' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   components: {
     parameters: {
