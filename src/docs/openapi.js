@@ -57,6 +57,16 @@ export const openapiDocument = {
           404: errorResponse('Unknown code'),
         },
       },
+
+      delete: {
+        summary: 'Delete a link and all of its clicks',
+        parameters: [{ $ref: '#/components/parameters/Code' }],
+        responses: {
+          204: { description: 'Deleted, nothing to send back' },
+          400: errorResponse('Badly formed code'),
+          404: errorResponse('Unknown code, or already deleted'),
+        },
+      },
     },
   },
   components: {
