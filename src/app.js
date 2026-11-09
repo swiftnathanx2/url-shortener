@@ -1,4 +1,5 @@
 import express from 'express';
+
 import cors from 'cors';
 import compression from 'compression';
 import helmet from 'helmet';
@@ -10,6 +11,9 @@ import { AppError, errorHandler } from '#src/middlewares/error-handler.js';
 import healthcheckRoutes from '#src/modules/healthcheck/healthcheck.route.js';
 import linkRoutes from '#src/modules/link/link.route.js';
 import redirectRoutes from '#src/modules/link/redirectRoutes.js';
+
+import swaggerUi from 'swagger-ui-express';
+import { openapiDocument } from './docs/openapi.js';
 
 export const createApp = () => {
   const app = express();
@@ -31,6 +35,8 @@ export const createApp = () => {
   app.use(morganMiddleware);
 
   app.use('/api', healthcheckRoutes);
+
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiDocument));
 
   app.use(linkRoutes);
 
