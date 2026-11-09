@@ -68,6 +68,24 @@ export const openapiDocument = {
         },
       },
     },
+
+    '/{code}': {
+      get: {
+        summary: 'Visit a short link',
+        description: 'Records a click and redirects to the target URL.',
+        parameters: [{ $ref: '#/components/parameters/Code' }],
+        responses: {
+          302: {
+            description: 'Redirect to the target URL',
+            headers: {
+              Location: { description: 'The target URL', schema: { type: 'string' } },
+            },
+          },
+          404: errorResponse('Unknown code'),
+          410: errorResponse('The link has expired'),
+        },
+      },
+    },
   },
   components: {
     parameters: {
