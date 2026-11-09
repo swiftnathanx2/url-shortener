@@ -86,6 +86,41 @@ export const openapiDocument = {
         },
       },
     },
+
+    '/links/{code}/clicks': {
+      get: {
+        summary: 'Page through the click log',
+        description:
+          'Keyset pagination. Start with after=0 (or leave it out). Pass the returned cursor as `after` to get the next page. A cursor of null means this was the last page.',
+        parameters: [
+          { $ref: '#/components/parameters/Code' },
+          {
+            name: 'after',
+            in: 'query',
+            description: 'The id of the last click already seen. Use 0 for the first page.',
+            schema: { type: 'integer', minimum: 0, default: 0 },
+          },
+          {
+            name: 'limit',
+            in: 'query',
+            description: 'How many clicks per page',
+            schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'One page of clicks, oldest first',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ClicksPage' },
+              },
+            },
+          },
+          400: errorResponse('Invalid after or limit'),
+          404: errorResponse('Unknown code'),
+        },
+      },
+    },
   },
   components: {
     parameters: {
@@ -136,6 +171,28 @@ export const openapiDocument = {
         properties: {
           status: { type: 'string', example: 'success' },
           data: { $ref: '#/components/schemas/Link' },
+        },
+      },
+
+      Click: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer', example: 55 },
+          clicked_at: { type: 'string', format: 'date-time' },
+          referrer: { type: 'string', nullable: true },
+          user_agent: { type: 'string', nullable: true },
+        },
+      },
+      ClicksPage: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', example: 'success' },
+          data: { type: 'array', items: { $ref: '#/components/schemas/Click' } },
+          cursor: {
+            type: 'integer',
+            nullable: true,
+            description: 'Pass this value as `after` to get the next page. null means there are no more pages.',
+          },
         },
       },
       Error: {
