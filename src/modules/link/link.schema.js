@@ -25,7 +25,11 @@ export const createLinkSchema = z.object({
         .url()
         .refine(
           (url) => {
-            return url.startsWith('http://') || url.startsWith('https://');
+            try {
+              return url.startsWith('http://') || url.startsWith('https://');
+            } catch {
+              return false;
+            }
           },
           {
             message: 'Link must start with http:// or https://',
