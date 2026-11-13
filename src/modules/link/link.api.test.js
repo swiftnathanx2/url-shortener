@@ -80,6 +80,17 @@ describe('LINKLY API ', () => {
       assert.equal(res.status, 400);
     });
 
+    it('returns 400 for a javascript URL: ', async () => {
+      const res = await post('/links', { target_url: 'javascript:alert(1)' });
+      assert.equal(res.status, 400);
+    });
+
+    it('returns 400 for a url with a space in the host', async () => {
+      const res = await post('/links', { target_url: 'https://exa mple.com' });
+
+      assert.equal(res.status, 400);
+    });
+
     it('adds https:// when the protocol is missing', async () => {
       const res = await post('/links', { target_url: 'www.linkedin.com/in/someone' });
       const body = await res.json();

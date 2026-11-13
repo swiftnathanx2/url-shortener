@@ -25,19 +25,24 @@ export const createLinkSchema = z.object({
         .url()
         .refine(
           (url) => {
-            try {
-              return url.startsWith('http://') || url.startsWith('https://');
-            } catch {
-              return false;
-            }
+            return url.startsWith('http://') || url.startsWith('https://');
           },
           {
             message: 'Link must start with http:// or https://',
           },
         )
-        .refine((url) => new URL(url).hostname.includes('.'), {
-          message: 'Link must have a valid domain like example.com',
-        }),
+        .refine(
+          (url) => {
+            try {
+              return new URL(url).hostname.includes('.');
+            } catch {
+              return false;
+            }
+          },
+          {
+            message: 'Link must have a valid domain like example.com',
+          },
+        ),
     ),
 
     expires_at: z.coerce
