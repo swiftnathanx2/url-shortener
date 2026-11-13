@@ -18,6 +18,12 @@ export const errorHandler = (err, _req, res, _next) => {
   if (err instanceof AppError) {
     statusCode = err.statusCode;
     message = err.message;
+  } else if (err.type === 'entity.parse.failed') {
+    statusCode = 400;
+    message = 'Request body is not valid JSON';
+  } else if (err.status >= 400 && err.status < 500) {
+    statusCode = err.status;
+    message = err.message;
   } else {
     logger.error(`Unexpected Error: ${err.message}`);
     logger.error(err.stack);

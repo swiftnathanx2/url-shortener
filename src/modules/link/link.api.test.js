@@ -35,7 +35,7 @@ describe('LINKLY API ', () => {
     fetch(`${baseUrl}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: typeof body === 'string' ? body : JSON.stringify(body),
     });
 
   const get = (path) => fetch(`${baseUrl}${path}`, { redirect: 'manual' });
@@ -89,6 +89,14 @@ describe('LINKLY API ', () => {
       const res = await post('/links', { target_url: 'https://exa mple.com' });
 
       assert.equal(res.status, 400);
+    });
+
+    it('returns 400 for a malformed JSON body ', async () => {
+      const res = await post('/links', '{bad');
+      const body = await res.json();
+
+      assert.equal(res.status, 400);
+      assert.equal(body.message, 'Request body is not valid JSON');
     });
 
     it('adds https:// when the protocol is missing', async () => {
