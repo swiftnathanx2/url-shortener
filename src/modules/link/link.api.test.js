@@ -99,6 +99,16 @@ describe('LINKLY API ', () => {
       assert.equal(body.message, 'Request body is not valid JSON');
     });
 
+    it('returns validation issues as an array', async () => {
+      const res = await post('/links', { target_url: 'hello' });
+      const body = await res.json();
+
+      assert.equal(res.status, 400);
+      assert.equal(body.message, 'Validation Error');
+      assert.ok(Array.isArray(body.issues));
+      assert.ok(body.issues[0].path.includes('target_url'));
+    });
+
     it('adds https:// when the protocol is missing', async () => {
       const res = await post('/links', { target_url: 'www.linkedin.com/in/someone' });
       const body = await res.json();
