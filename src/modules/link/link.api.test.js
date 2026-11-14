@@ -1,4 +1,4 @@
-import { describe, it, before, beforeEach, after } from 'node:test';
+import { describe, it, before, beforeEach, after, mock, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '#src/app.js';
 import { pool } from '#src/db/index.js';
@@ -80,7 +80,7 @@ describe('LINKLY API ', () => {
       assert.equal(res.status, 400);
     });
 
-    it('returns 400 for a javascript URL: ', async () => {
+    it('returns 400 for a javascript URL', async () => {
       const res = await post('/links', { target_url: 'javascript:alert(1)' });
       assert.equal(res.status, 400);
     });
@@ -91,7 +91,7 @@ describe('LINKLY API ', () => {
       assert.equal(res.status, 400);
     });
 
-    it('returns 400 for a malformed JSON body ', async () => {
+    it('returns 400 for a malformed JSON body', async () => {
       const res = await post('/links', '{bad');
       const body = await res.json();
 
@@ -303,6 +303,10 @@ describe('LINKLY API ', () => {
 
   // health test
   describe('GET /health', () => {
+    afterEach(() => {
+      mock.restoreAll();
+    });
+
     it('reports that the service is up', async () => {
       const res = await get('/health');
       const body = await res.json();
@@ -310,6 +314,18 @@ describe('LINKLY API ', () => {
       assert.equal(res.status, 200);
       assert.equal(body.status, 'success');
       assert.equal(typeof body.uptime, 'number');
+    });
+
+    it('returns 503 when the database is unreachable', async () => {
+      mock.method(pool, 'query', async () => {
+        throw new Error('db down');
+      });
+
+      const res = await get('/health');
+      const body = await res.json();
+
+      assert.equal(res.status, 503);
+      assert.equal(body.status, 'error');
     });
   });
 });
