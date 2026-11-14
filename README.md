@@ -4,6 +4,10 @@ A REST API URL Shortener that makes long links short, redirects visitors to the 
 
 ---
 
+# Live Demo
+
+https://linkly-jlc2.onrender.com/docs
+
 ## 📌Problem Statement
 
 The links that most websites generate are often very long and difficult to remember and also not user friendly. Hence there is need to shorten urls to make them easier for users to type and that is where this URL shortener comes in.
@@ -21,7 +25,7 @@ The links that most websites generate are often very long and difficult to remem
 **Logging:** morgan, winston
 **API docs:** OpenAPI 3 served with swagger-ui-express
 **Testing:** Node's built-in test runner (`node:test`) against a real PostgreSQL test database
-**Quality & CI:** ESLint, Prettier, GitHub Actions (with a PostgreSQL service) **Language:** JavaScript (Node.js, ES modules)
+**Quality & CI:** ESLint, Prettier, GitHub Actions (with a PostgreSQL service) JavaScript (Node.js, ES modules)
 
 - **Framework:** Express 5
 - **Database:** PostgreSQL, accessed with the `pg` driver and plain parameterized SQL (no ORM)
@@ -91,7 +95,11 @@ Ensure you have the following software installed:
 
    ```bash
    psql postgres://linkly_user:linkly@localhost:5432/linkly -f src/db/schema.sql
+
+   npm run db:seed
    ```
+
+   The seed adds three sample links: `docs123` and `gh-node` (with sample clicks) and `oldlink`, which is already expired so `GET /oldlink` returns 410. Both commands are safe to run repeatedly.
 
 6. **Start the development server:**
    ```bash
@@ -161,6 +169,7 @@ No authentication is required (see Limitations).
 `GET /links/short-x/clicks?after=0&limit=2`
 
 - **Success Response (200 OK):**
+
   ```json
   {
     "status": "success",
@@ -171,7 +180,20 @@ No authentication is required (see Limitations).
     "cursor": 2
   }
   ```
+
   To get the next page, send the returned `cursor` as `after`. A `cursor` of `null` means this was the last page.
+
+  ### Error responses
+
+Errors share one shape. Validation failures list each problem in an `issues` array:
+
+```json
+{
+  "statusCode": 400,
+  "message": "Validation Error",
+  "issues": [{ "path": "body.target_url", "message": "<the rule that failed>" }]
+}
+```
 
 ---
 
