@@ -4,9 +4,8 @@ dist/
 build/
 
 .env
-.env.local
-.env.development.local
-.env.test.local
+.env.development
+.env.test
 .env.production.local
 
 logs/
