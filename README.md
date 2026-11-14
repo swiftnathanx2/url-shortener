@@ -25,16 +25,7 @@ The links that most websites generate are often very long and difficult to remem
 **Logging:** morgan, winston
 **API docs:** OpenAPI 3 served with swagger-ui-express
 **Testing:** Node's built-in test runner (`node:test`) against a real PostgreSQL test database
-**Quality & CI:** ESLint, Prettier, GitHub Actions (with a PostgreSQL service) JavaScript (Node.js, ES modules)
-
-- **Framework:** Express 5
-- **Database:** PostgreSQL, accessed with the `pg` driver and plain parameterized SQL (no ORM)
-- **Validation:** Zod (every request is validated at the boundary)
-- **Security & middleware:** helmet, cors, hpp, compression
-- **Logging:** morgan, winston
-- **API docs:** OpenAPI 3 served with swagger-ui-express
-- **Testing:** Node's built-in test runner (`node:test`) against a real PostgreSQL test database
-- **Quality & CI:** ESLint, Prettier, GitHub Actions (with a PostgreSQL service)
+**Quality & CI:** ESLint, Prettier, GitHub Actions (with a PostgreSQL service)
 
 ---
 
@@ -195,6 +186,36 @@ Errors share one shape. Validation failures list each problem in an `issues` arr
 }
 ```
 
+---
+
+## Index usage for the redirect lookup
+
+## Index usage for the redirect lookup
+
+`links.code` is declared `UNIQUE`, so PostgreSQL automatically keeps an index on it (`links_code_key`). The redirect lookup (`GET /:code`) runs `SELECT id, target_url, expires_at FROM links WHERE code = $1`, so it searches by `code` through that index instead of reading the whole table. This is the plan for a lookup of the seeded link `docs123`:
+
+```text
+                                                        QUERY PLAN
+--------------------------------------------------------------------------------------------------------------------------
+ Index Scan using links_code_key on links  (cost=0.14..8.15 rows=1 width=36) (actual time=0.030..0.030 rows=1.00 loops=1)
+   Index Cond: ((code)::text = 'docs123'::text)
+   Index Searches: 1
+   Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=90
+ Planning Time: 0.232 ms
+ Execution Time: 0.072 ms
+(8 rows)
+```
+
+The plan was produced with:
+
+```sql
+SET enable_seqscan = off;
+EXPLAIN ANALYZE SELECT id, target_url, expires_at FROM links WHERE code = 'docs123';
+```
+
+The development table only holds a few rows, and on a table that small PostgreSQL would normally choose a plain sequential scan because it is cheaper. I turned sequential scans off for that one session only, to show that the unique index exists and that the lookup can use it. On a larger table, PostgreSQL picks the index scan without any setting.
 ---
 
 ## 🧠 Design Decisions
